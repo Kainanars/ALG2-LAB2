@@ -1,70 +1,66 @@
-import java.util.Scanner;
-
-class Node {
-  int value;
-  Node left;
-  Node right;
-
-  public Node(int value) {
-    this.value = value;
-    this.left = this.right = null;
-  }
-}
-
-class BinarySearchTree {
-  Node root;
-
-  public void insert(int value) {
-    root = insertRec(root, value);
-  }
-
-  private Node insertRec(Node root, int value) {
-    if (root == null)
-      return new Node(value);
-
-    if (value < root.value) {
-      root.left = insertRec(root.left, value);
-    } else {
-      root.right = insertRec(root.right, value);
-    }
-
-    return root;
-  }
-
-  public boolean isBalanced() {
-    return isBalancedRec(root) != -1;
-  }
-
-  private int isBalancedRec(Node root) {
-    if (root == null)
-      return 0;
-
-    int leftHeight = isBalancedRec(root.left);
-    int rightHeight = isBalancedRec(root.right);
-
-    if (leftHeight == -1 || rightHeight == -1 || Math.abs(leftHeight - rightHeight) > 1) {
-      return -1;
-    }
-
-    return Math.max(leftHeight, rightHeight) + 1;
-  }
-}
+import java.util.*;
 
 public class ExerciseB {
+
   public static void main(String[] args) {
-    Scanner scanner = new Scanner(System.in);
+    Scanner leitor = new Scanner(System.in);
+    PriorityQueue<Client> maxHeap = new PriorityQueue<>((a, b) -> b.priority - a.priority);
+    PriorityQueue<Client> minHeap = new PriorityQueue<>((a, b) -> a.priority - b.priority);
+    Map<Integer, Client> clientMap = new HashMap<>();
 
-    int n = scanner.nextInt();
-    BinarySearchTree bst = new BinarySearchTree();
+    while (true) {
+      String input = leitor.nextLine();
+      String[] parts = input.split(" ");
+      int comando = Integer.parseInt(parts[0]);
 
-    // Leitura e inserção dos valores na árvore
-    for (int i = 0; i < n; i++) {
-      bst.insert(scanner.nextInt());
+      if (comando == 0) {
+        break;
+      }
+
+      if (comando == 1) {
+        int id = Integer.parseInt(parts[1]);
+        int priority = Integer.parseInt(parts[2]);
+        Client client = new Client(id, priority);
+        maxHeap.offer(client);
+        minHeap.offer(client);
+        clientMap.put(id, client);
+      } else if (comando == 2) {
+        while (!maxHeap.isEmpty() && !clientMap.containsKey(maxHeap.peek().id)) {
+          maxHeap.poll();
+        }
+
+        if (maxHeap.isEmpty()) {
+          System.out.println(0);
+        } else {
+          Client served = maxHeap.poll();
+          clientMap.remove(served.id);
+          System.out.println(served.id);
+        }
+      } else if (comando == 3) {
+        while (!minHeap.isEmpty() && !clientMap.containsKey(minHeap.peek().id)) {
+          minHeap.poll();
+        }
+
+        if (minHeap.isEmpty()) {
+          System.out.println(0);
+        } else {
+          Client served = minHeap.poll();
+          clientMap.remove(served.id);
+          System.out.println(served.id);
+        }
+      }
     }
 
-    // Verifica se a árvore é balanceada e imprime o resultado
-    System.out.println(bst.isBalanced() ? 1 : 0);
+    leitor.close();
+  }
 
-    scanner.close();
+  static class Client {
+    int id;
+    int priority;
+
+    Client(int id, int priority) {
+      this.id = id;
+      this.priority = priority;
+    }
   }
 }
