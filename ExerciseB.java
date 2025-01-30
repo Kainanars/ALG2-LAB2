@@ -1,66 +1,67 @@
-import java.util.*;
+import java.util.HashSet;
+import java.util.Scanner;
+import java.util.Set;
 
 public class ExerciseB {
-
   public static void main(String[] args) {
-    Scanner leitor = new Scanner(System.in);
-    PriorityQueue<Client> maxHeap = new PriorityQueue<>((a, b) -> b.priority - a.priority);
-    PriorityQueue<Client> minHeap = new PriorityQueue<>((a, b) -> a.priority - b.priority);
-    Map<Integer, Client> clientMap = new HashMap<>();
+    Scanner scanner = new Scanner(System.in);
+    String inputString = scanner.nextLine().trim();
+    scanner.close();
 
-    while (true) {
-      String input = leitor.nextLine();
-      String[] parts = input.split(" ");
-      int comando = Integer.parseInt(parts[0]);
-
-      if (comando == 0) {
-        break;
-      }
-
-      if (comando == 1) {
-        int id = Integer.parseInt(parts[1]);
-        int priority = Integer.parseInt(parts[2]);
-        Client client = new Client(id, priority);
-        maxHeap.offer(client);
-        minHeap.offer(client);
-        clientMap.put(id, client);
-      } else if (comando == 2) {
-        while (!maxHeap.isEmpty() && !clientMap.containsKey(maxHeap.peek().id)) {
-          maxHeap.poll();
-        }
-
-        if (maxHeap.isEmpty()) {
-          System.out.println(0);
-        } else {
-          Client served = maxHeap.poll();
-          clientMap.remove(served.id);
-          System.out.println(served.id);
-        }
-      } else if (comando == 3) {
-        while (!minHeap.isEmpty() && !clientMap.containsKey(minHeap.peek().id)) {
-          minHeap.poll();
-        }
-
-        if (minHeap.isEmpty()) {
-          System.out.println(0);
-        } else {
-          Client served = minHeap.poll();
-          clientMap.remove(served.id);
-          System.out.println(served.id);
-        }
-      }
-    }
-
-    leitor.close();
+    System.out.println(findMaxSubstringLength(inputString));
   }
 
-  static class Client {
-    int id;
-    int priority;
+  public static int findMaxSubstringLength(String inputString) {
+    int stringLength = inputString.length();
+    int maxSubstringLength = 0;
 
-    Client(int id, int priority) {
-      this.id = id;
-      this.priority = priority;
+    // Armazena caracteres únicos
+    Set<Character> uniqueCharacters = new HashSet<>();
+
+    // Ponteiros para a janela deslizante
+    int left = 0;
+
+    // Primeira passagem: encontra substrings com caracteres distintos
+    for (int right = 0; right < stringLength; right++) {
+      // Remove os caracteres repetidos movendo o início da janela
+      while (uniqueCharacters.contains(inputString.charAt(right))) {
+        uniqueCharacters.remove(inputString.charAt(left));
+        left++;
+      }
+      // Adiciona o caractere atual aos caracteres únicos
+      uniqueCharacters.add(inputString.charAt(right));
+      // Atualiza o comprimento máximo da substring encontrada
+      maxSubstringLength = Math.max(maxSubstringLength, right - left + 1);
     }
+
+    // Segunda passagem: considera a reversão de uma substring
+    for (int i = 0; i < stringLength; i++) {
+      uniqueCharacters.clear(); // Reinicia o conjunto de caracteres únicos
+      left = i;
+      for (int right = i; right < stringLength; right++) {
+        // Remove os caracteres repetidos movendo o início da janela
+        while (uniqueCharacters.contains(inputString.charAt(right))) {
+          uniqueCharacters.remove(inputString.charAt(left));
+          left++;
+        }
+        // Adiciona o caractere atual ao conjunto de caracteres únicos
+        uniqueCharacters.add(inputString.charAt(right));
+
+        // Tenta combinar a substring atual com outras substrings à direita
+        for (int j = right + 1; j < stringLength; j++) {
+          Set<Character> combinedCharacters = new HashSet<>(uniqueCharacters);
+          int k = j;
+          // Adiciona caracteres à combinação enquanto forem únicos
+          while (k < stringLength && !combinedCharacters.contains(inputString.charAt(k))) {
+            combinedCharacters.add(inputString.charAt(k));
+            k++;
+          }
+          // Atualiza o comprimento máximo se a combinação for válida
+          maxSubstringLength = Math.max(maxSubstringLength, (right - left + 1) + (k - j));
+        }
+      }
+    }
+
+    return maxSubstringLength;
   }
 }
